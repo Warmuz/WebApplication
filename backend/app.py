@@ -40,6 +40,7 @@ app.add_middleware(
 async def ping():
     return {"msg": "pong"}
 
+
 @app.post("/login")
 @db_session
 def login(user_data: dict = Body(...)):

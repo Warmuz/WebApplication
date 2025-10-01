@@ -1,9 +1,12 @@
+import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
+import './LoginPage.css';
 
 function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,10 +19,9 @@ function LoginPage() {
 
         try {
         const data = await res.json() 
-        console.log("Parsed JSON:", data);
         if (res.ok) {
-            setMessage(`Welcome ${data.username}! Your role: ${data.role}`);
             localStorage.setItem("token", data.access_token);
+            navigate("/dashboard", { state: { username: data.username, role: data.role } });
         } else {
             setMessage(data.detail || "Login failed!");
         }

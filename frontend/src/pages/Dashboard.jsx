@@ -1,17 +1,21 @@
-import AdminPanel from "./AdminPanel";
-import UserPanel from "./UserPanel";
+import { useLocation } from "react-router-dom";
+import AdminPage from "./AdminPage";
+import UserPage from "./UserPage";
 
 function Dashboard() {
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user) return <p>Please log in</p>;
-
-  return (
-    <div>
-      <h1>Welcome, {user.username}!</h1>
-
-      {user.role === "ADMIN" ? <AdminPanel /> : <UserPanel />}
-    </div>
-  );
-}
-
-export default Dashboard;
+    const location = useLocation();
+    const username = location.state?.username || "user";
+    const role = location.state?.role || "user";
+  
+    return (
+      <div>
+        {role === "admin" ? (
+          <AdminPage username={username} />
+        ) : (
+          <UserPage username={username} />
+        )}
+      </div>
+    );
+  }
+  
+  export default Dashboard;
