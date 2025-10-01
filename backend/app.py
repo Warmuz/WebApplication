@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Body
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from werkzeug.security import generate_password_hash
 from models import User, File, Role
 from pony.orm import db_session
@@ -22,45 +23,39 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return token
 
-def decode_access_token(token: str):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
 
 app = FastAPI()
 
-# Allow frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # React dev server
+    allow_origins="http://localhost:5173",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+
+@app.get("/ping")
+async def ping():
+    return {"msg": "pong"}
+
 @app.post("/login")
 @db_session
-async def login(request: Request):
-    data = await request.json()
-    username = data.get("username")
-    password = data.get("password")
+def login(user_data: dict = Body(...)):
+    username = user_data.get("username")
+    password = user_data.get("password")
 
     user = User.get(username=username)
     if not user or not user.verify_password(password):
         raise HTTPException(status_code=401, detail="Invalid username or password")
-    
-    
+
     token_data = {"sub": user.username, "role": user.role}
     access_token = create_access_token(token_data)
 
-    return {
-    "username": user.username,
-    "role": user.role,
-    "access_token": access_token,
-    "token_type": "bearer"
-    }
+    return JSONResponse(content={
+        "username": user.username,
+        "role": user.role,
+        "access_token": access_token,
+        "token_type": "bearer"
+    })

@@ -8,23 +8,26 @@ function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      const res = await fetch("http://127.0.0.1:8000/login", {
+    const res = await fetch("http://127.0.0.1:8000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        setMessage(data.message);
-      } else {
-        setMessage("Login failed!");
+        try {
+        const data = await res.json() 
+        console.log("Parsed JSON:", data);
+        if (res.ok) {
+            setMessage(`Welcome ${data.username}! Your role: ${data.role}`);
+            localStorage.setItem("token", data.access_token);
+        } else {
+            setMessage(data.detail || "Login failed!");
+        }
+      } catch (e) {
+        console.error("Failed to parse JSON:", e);
+        setMessage("Response parsing error");
       }
-    } catch (err) {
-      console.error(err);
-      setMessage("Something went wrong!");
-    }
+      
   };
 
   return (
